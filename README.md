@@ -43,7 +43,7 @@ Also, a MQTT broker (for example Mosquitto) is also [installed](https://mosquitt
 		`SUBSYSTEM=='tty', ATTRS{idVendor}=='2047', ATTRS{idProduct}=='08f8', ATTRS{serial}=='0123456789ABCDEF', SYMLINK+='ttyPMV0'`, where:  
 			- `0123456789ABCDEF` = the board's unique serial number, that can be obtained by running `lsusb -v` and scrolling to the device with attribute `idProduct`=`FDC2x14/LDC13xx/LDC16xx EVM`, and noting its `iSerial` attribute's value  
 			- `ttyPMV0` = the console name to be static assigned - to be entered in the parameter `LINUX_SERIAL_PORT` at the following step  
-- Edit the `mqtt_hdc1080.py` file by configuring the user-specific values accordingly to the used MQTT broker (`MQTT_HOSTNAME`, `MQTT_USERNAME`, `MQTT_PASSWORD`, `MQTT_CLIENT_ID`), serial port (`WIN_SERIAL_PORT` for Windows, `LINUX_SERIAL_PORT` for Linux), and sampling period (`SAMPLE_INTERVAL`)  
+- Edit the [`mqtt_hdc1080.py`](scripts/mqtt_hdc1080.py) file by configuring the user-specific values accordingly to the used MQTT broker (`MQTT_HOSTNAME`, `MQTT_USERNAME`, `MQTT_PASSWORD`, `MQTT_CLIENT_ID`), serial port (`WIN_SERIAL_PORT` for Windows, `LINUX_SERIAL_PORT` for Linux), and sampling period (`SAMPLE_INTERVAL`)  
 - Run the Python script as root: `sudo python3 mqtt_hdc1080.py`  
 - (Optional) Configure the script to run at startup, for example by adding it to `/etc/rc.local`  
 
