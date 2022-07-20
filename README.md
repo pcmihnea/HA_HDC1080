@@ -47,26 +47,7 @@ As a alternative, a separate PC can also be used for interfacing to the HDC1080.
 - Run the Python script: `python3 mqtt_hdc1080.py`  
 
 ## 3. Configure the HomeAssistant instance
-Add the following lines in `configuration.yaml` file (present inside the user-defined `homeassistant` configuration folder).  
-
-```
-sensor:
-  - platform: mqtt
-    name: TEMP
-    unique_id: "hdc1080_temp"
-    state_topic: "hdc1080/sensors/values"
-    value_template: "{{ value_json.TEMP }}"
-    device_class: temperature
-    unit_of_measurement: "°C"
-  - platform: mqtt
-    name: HUMID
-    unique_id: "hdc1080_humid"
-    state_topic: "hdc1080/sensors/values"
-    value_template: "{{ value_json.HUMID }}"
-    device_class: humidity
-    unit_of_measurement: "%"
-```
-- If all is well, after a HA restart the newly created sensors shall be available.
+User configuration is not necessary, as [MQTT auto-discovery](https://www.home-assistant.io/docs/mqtt/discovery/) is implemented.  
 
 
 # Who/where/when?

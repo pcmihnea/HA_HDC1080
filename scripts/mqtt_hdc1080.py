@@ -19,6 +19,8 @@ PACKET_CRC2 = 5
 PACKET_DATA_LEN = 9
 PACKET_LEN = 22
 
+SENSOR_VALUES = {'TEMP': 0, 'HUMID': 0}
+
 
 def serial_req(addr):
     try:
@@ -43,26 +45,20 @@ def serial_req(addr):
                                 data_elems[PACKET_CRC1] == data_elems[PACKET_CRC2] and \
                                 data_elems[PACKET_CRC1] == Crc8.calc(rx_data[0:PACKET_DATA_LEN]):
                             if data_elems[PACKET_ADDR[0]] == PACKET_ADDR[1][0]:
-                                value = round((data_elems[PACKET_VALUE] * 165) / 65536 - 40, 3)
-                                sensor = 'TEMP'
+                                SENSOR_VALUES['TEMP'] = round((data_elems[PACKET_VALUE] * 165.0) / 65536.0 - 40.0, 3)
                             elif data_elems[PACKET_ADDR[0]] == PACKET_ADDR[1][1]:
-                                value = round((data_elems[PACKET_VALUE] * 100) / 65536, 3)
-                                sensor = 'HUMID'
-                            else:
-                                value = 0
-                                sensor = ''
-                            if bool(sensor):
-                                publish.single('hdc1080/sensors/' + sensor,
-                                               hostname=PRIVATE_CONFIG['MQTT']['HOSTNAME'],
-                                               port=1883,
-                                               client_id='hdc1080',
-                                               auth={'username': PRIVATE_CONFIG['MQTT']['USERNAME'],
-                                                     'password': PRIVATE_CONFIG['MQTT']['PASSWORD']},
-                                               payload=value)
+                                SENSOR_VALUES['HUMID'] = round((data_elems[PACKET_VALUE] * 100.0) / 65536.0, 3)
                     ser.flushInput()
                     break
     except Exception:
         logging.exception('EXCEPTION')
+
+
+def mqtt_publish(topic, payload, retain):
+    publish.single(hostname=PRIVATE_CONFIG['MQTT']['HOSTNAME'], port=1883, client_id='hdc1080',
+                   auth={'username': PRIVATE_CONFIG['MQTT']['USERNAME'],
+                         'password': PRIVATE_CONFIG['MQTT']['PASSWORD']},
+                   topic=topic, payload=json.dumps(payload), retain=retain)
 
 
 if __name__ == '__main__':
@@ -74,11 +70,23 @@ if __name__ == '__main__':
         if bool(PRIVATE_CONFIG['MQTT']) and bool(PRIVATE_CONFIG['HDC1080']):
             pass
         ser = serial.Serial(PRIVATE_CONFIG['HDC1080']['SERIAL_PORT'], 115200, timeout=SERIAL_TIMEOUT)
-        SENSOR_VALUES = {'TEMP': 0, 'HUMID': 0}
+        mqtt_publish('homeassistant/sensor/HDC1080_T/config',
+                     {"name": 'HDC1080_T',
+                      "state_topic": 'homeassistant/sensor/HDC1080/state',
+                      "value_template": '{{ value_json.TEMP }}',
+                      "device_class": 'temperature', "unit_of_measurement": '°C'},
+                     True)
+        mqtt_publish('homeassistant/sensor/HDC1080_H/config',
+                     {"name": 'HDC1080_H',
+                      "state_topic": 'homeassistant/sensor/HDC1080/state',
+                      "value_template": '{{ value_json.HUMID }}',
+                      "device_class": 'humidity', "unit_of_measurement": '%'},
+                     True)
         while ser.is_open:
             start_time = time.time()
             serial_req(ADDR_TEMP)
             serial_req(ADDR_HUMID)
+            mqtt_publish('homeassistant/sensor/HDC1080/state', SENSOR_VALUES, False)
             time.sleep(PRIVATE_CONFIG['HDC1080']['SAMPLE_INTERVAL'] - (time.time() - start_time))
     except Exception:
         logging.exception('EXCEPTION')
