@@ -74,13 +74,15 @@ if __name__ == '__main__':
                      {"name": 'HDC1080_T',
                       "state_topic": 'homeassistant/sensor/HDC1080/state',
                       "value_template": '{{ value_json.TEMP }}',
-                      "device_class": 'temperature', "unit_of_measurement": '°C'},
+                      "device_class": 'temperature', "unit_of_measurement": '°C',
+                      "unique_id": "hdc1080t"},
                      True)
         mqtt_publish('homeassistant/sensor/HDC1080_H/config',
                      {"name": 'HDC1080_H',
                       "state_topic": 'homeassistant/sensor/HDC1080/state',
                       "value_template": '{{ value_json.HUMID }}',
-                      "device_class": 'humidity', "unit_of_measurement": '%'},
+                      "device_class": 'humidity', "unit_of_measurement": '%',
+                      "unique_id": "hdc1080h"},
                      True)
         while ser.is_open:
             start_time = time.time()
