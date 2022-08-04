@@ -52,10 +52,13 @@ def serial_req(addr):
 
 
 def mqtt_publish(topic, payload, retain):
-    publish.single(hostname=PRIVATE_CONFIG['MQTT']['HOSTNAME'], port=1883, client_id='hdc1080',
-                   auth={'username': PRIVATE_CONFIG['MQTT']['USERNAME'],
-                         'password': PRIVATE_CONFIG['MQTT']['PASSWORD']},
-                   topic=topic, payload=json.dumps(payload), retain=retain)
+    try:
+        publish.single(hostname=PRIVATE_CONFIG['MQTT']['HOSTNAME'], port=1883, client_id='hdc1080',
+                       auth={'username': PRIVATE_CONFIG['MQTT']['USERNAME'],
+                             'password': PRIVATE_CONFIG['MQTT']['PASSWORD']},
+                       topic=topic, payload=json.dumps(payload), retain=retain)
+    except Exception:
+        logging.exception('MQTT_PUBLISH')
 
 
 if __name__ == '__main__':
@@ -92,7 +95,7 @@ if __name__ == '__main__':
             mqtt_publish('homeassistant/sensor/HDC1080/state', SENSOR_VALUES, False)
             time.sleep(PRIVATE_CONFIG['HDC1080']['SAMPLE_INTERVAL'] - (time.time() - start_time))
     except Exception:
-        logging.exception('EXCEPTION')
+        logging.exception('MAIN')
     try:
         ser.close()
     except Exception:
