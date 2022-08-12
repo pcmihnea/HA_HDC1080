@@ -70,6 +70,7 @@ if __name__ == '__main__':
         f.close()
         if bool(PRIVATE_CONFIG['MQTT']) and bool(PRIVATE_CONFIG['HDC1080']):
             pass
+        sample_interval = PRIVATE_CONFIG['HDC1080']['SAMPLE_INTERVAL']
         ser = serial.Serial(PRIVATE_CONFIG['HDC1080']['SERIAL_PORT'], 115200, timeout=SERIAL_TIMEOUT)
         mqtt_publish('homeassistant/sensor/HDC1080_T/config',
                      {"name": 'HDC1080_T',
@@ -77,7 +78,7 @@ if __name__ == '__main__':
                       "value_template": '{{ value_json.TEMP }}',
                       "device_class": 'temperature', "unit_of_measurement": '°C',
                       "unique_id": "hdc1080t",
-                      "expire_after": 600},
+                      "expire_after": sample_interval * 2},
                      True)
         mqtt_publish('homeassistant/sensor/HDC1080_H/config',
                      {"name": 'HDC1080_H',
@@ -85,7 +86,7 @@ if __name__ == '__main__':
                       "value_template": '{{ value_json.HUMID }}',
                       "device_class": 'humidity', "unit_of_measurement": '%',
                       "unique_id": "hdc1080h",
-                      "expire_after": 600},
+                      "expire_after": sample_interval * 2},
                      True)
         logging.info('LOOP')
         while ser.is_open:
@@ -93,7 +94,7 @@ if __name__ == '__main__':
             serial_req(ADDR_TEMP)
             serial_req(ADDR_HUMID)
             mqtt_publish('homeassistant/sensor/HDC1080/state', SENSOR_VALUES, False)
-            time.sleep(PRIVATE_CONFIG['HDC1080']['SAMPLE_INTERVAL'] - (time.time() - start_time))
+            time.sleep(sample_interval - (time.time() - start_time))
     except Exception:
         logging.exception('MAIN')
     try:
