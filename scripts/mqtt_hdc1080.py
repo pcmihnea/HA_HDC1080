@@ -7,7 +7,7 @@ import paho.mqtt.publish as publish
 import serial
 from crccheck.crc import Crc8
 
-SERIAL_TIMEOUT = 5
+SERIAL_TIMEOUT = 2
 ADDR_TEMP = 0x00
 ADDR_HUMID = 0x01
 PACKET_HEADER = [0, 0x4c330100]
@@ -23,6 +23,7 @@ SENSOR_VALUES = {'TEMP': 0, 'HUMID': 0}
 
 
 def serial_req(addr):
+    result = False
     tx_data = bytearray(
         struct.pack('>LHBBB', PACKET_HEADER[1], PACKET_TYPE[1][0], PACKET_ADDR[1][addr], 0x02, 0x00))
     tx_data[-1] = Crc8.calc(tx_data[:-1])
@@ -45,20 +46,20 @@ def serial_req(addr):
                             data_elems[PACKET_CRC1] == Crc8.calc(rx_data[0:PACKET_DATA_LEN]):
                         if data_elems[PACKET_ADDR[0]] == PACKET_ADDR[1][0]:
                             SENSOR_VALUES['TEMP'] = round((data_elems[PACKET_VALUE] * 165.0) / 65536.0 - 40.0, 3)
+                            result = True
                         elif data_elems[PACKET_ADDR[0]] == PACKET_ADDR[1][1]:
                             SENSOR_VALUES['HUMID'] = round((data_elems[PACKET_VALUE] * 100.0) / 65536.0, 3)
+                            result = True
                 ser.flushInput()
                 break
+    return result
 
 
 def mqtt_publish(topic, payload, retain):
-    try:
-        publish.single(hostname=PRIVATE_CONFIG['MQTT']['HOSTNAME'], port=1883, client_id='hdc1080',
-                       auth={'username': PRIVATE_CONFIG['MQTT']['USERNAME'],
-                             'password': PRIVATE_CONFIG['MQTT']['PASSWORD']},
-                       topic=topic, payload=json.dumps(payload), retain=retain)
-    except Exception:
-        logging.exception('MQTT_PUBLISH')
+    publish.single(hostname=PRIVATE_CONFIG['MQTT']['HOSTNAME'], port=1883, client_id='hdc1080',
+                   auth={'username': PRIVATE_CONFIG['MQTT']['USERNAME'],
+                         'password': PRIVATE_CONFIG['MQTT']['PASSWORD']},
+                   topic=topic, payload=json.dumps(payload), retain=retain)
 
 
 if __name__ == '__main__':
@@ -80,6 +81,7 @@ if __name__ == '__main__':
                       "unique_id": "hdc1080t",
                       "expire_after": sample_interval * 2},
                      True)
+        time.sleep(0.1)
         mqtt_publish('homeassistant/sensor/HDC1080_H/config',
                      {"name": 'HDC1080_H',
                       "state_topic": 'homeassistant/sensor/HDC1080/state',
@@ -91,9 +93,11 @@ if __name__ == '__main__':
         logging.info('LOOP')
         while ser.is_open:
             start_time = time.time()
-            serial_req(ADDR_TEMP)
-            serial_req(ADDR_HUMID)
-            mqtt_publish('homeassistant/sensor/HDC1080/state', SENSOR_VALUES, False)
+            if serial_req(ADDR_TEMP) and serial_req(ADDR_HUMID):
+                try:
+                    mqtt_publish('homeassistant/sensor/HDC1080/state', SENSOR_VALUES, False)
+                except Exception:
+                    logging.exception('MQTT_PUBLISH')
             time.sleep(sample_interval - (time.time() - start_time))
     except Exception:
         logging.exception('MAIN')
