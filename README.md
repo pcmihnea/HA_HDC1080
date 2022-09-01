@@ -41,7 +41,7 @@ As a alternative, a separate PC can also be used for interfacing to the HDC1080.
 	`SUBSYSTEM=='tty', ATTRS{idVendor}=='2047', ATTRS{idProduct}=='08f8', ATTRS{serial}=='0123456789ABCDEF', SYMLINK+='ttyCOM1'`, where:  
 	- `0123456789ABCDEF` = the board's unique serial number, that can be obtained by running `lsusb -v` and scrolling to the device with attribute `idProduct`=`FDC2x14/LDC13xx/LDC16xx EVM`, and noting its `iSerial` attribute's value,  
 	- `ttyCOM1` = the console name to be static assigned - to be entered in the parameter `LINUX_SERIAL_PORT` at the following step.  
-- - Edit the [`private_config.json`](scripts/private_config.json) file by configuring the:
+- Edit the [`private_config.json`](scripts/private_config.json) file by configuring the:
 	- used MQTT broker (`HOSTNAME`, `USERNAME`, `PASSWORD`),  
 	- used serial port `SERIAL_PORT` and sampling interval `SAMPLE_INTERVAL`.  
 - Run the Python script: `python3 mqtt_hdc1080.py`  
@@ -51,4 +51,4 @@ User configuration is not necessary, as [MQTT auto-discovery](https://www.home-a
 
 
 # Who/where/when?
-All the reverse-engineering, development, integration, and documentation efforts are based on the latest software and hardware versions available at the time of writing (July 2022), and licensed under the GNU General Public License v3.0.
+All the reverse-engineering, development, integration, and documentation efforts are based on the latest software and hardware versions available at the time of writing (September 2022), and licensed under the GNU General Public License v3.0.
