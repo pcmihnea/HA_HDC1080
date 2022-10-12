@@ -79,7 +79,7 @@ if __name__ == '__main__':
                       "value_template": '{{ value_json.TEMP }}',
                       "device_class": 'temperature', "unit_of_measurement": '°C',
                       "unique_id": "hdc1080t",
-                      "expire_after": sample_interval * 2},
+                      "expire_after": sample_interval * 4},
                      True)
         time.sleep(0.1)
         mqtt_publish('homeassistant/sensor/HDC1080_H/config',
@@ -88,7 +88,7 @@ if __name__ == '__main__':
                       "value_template": '{{ value_json.HUMID }}',
                       "device_class": 'humidity', "unit_of_measurement": '%',
                       "unique_id": "hdc1080h",
-                      "expire_after": sample_interval * 2},
+                      "expire_after": sample_interval * 4},
                      True)
         logging.info('LOOP')
         while ser.is_open:
